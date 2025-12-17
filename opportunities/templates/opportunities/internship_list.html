@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Internships</title>
+</head>
+<body>
+    <h2>Available Internships</h2>
+
+    {% for internship in internships %}
+        <div style="border:1px solid #ccc; padding:10px; margin:10px;">
+            <h3>{{ internship.title }}</h3>
+            <p>{{ internship.description }}</p>
+            <p><b>Duration:</b> {{ internship.duration_months }} months</p>
+            <p><b>Stipend:</b> {{ internship.stipend|default:"Not disclosed" }}</p>
+            <p><b>Remote:</b> {{ internship.is_remote|yesno:"Yes,No" }}</p>
+
+            <form method="post" action="{% url 'apply_to_internship' internship.id %}">
+                {% csrf_token %}
+                <button type="submit">Apply</button>
+            </form>
+        </div>
+    {% empty %}
+        <p>No internships available.</p>
+    {% endfor %}
+</body>
+</html>

@@ -8,6 +8,12 @@ from django.http import HttpResponseForbidden
 from users.models import EmployerProfile
 from .models import Application
 from django.db import models
+from .models import (
+    Job,
+    Internship,
+    Application,
+    InternshipApplication,
+)
 
 
 
@@ -122,5 +128,31 @@ def employer_dashboard(request):
         'opportunities/employer_dashboard.html',
         {'jobs': jobs}
     )
+
+@login_required
+def internship_list(request):
+    internships = Internship.objects.all()
+    return render(
+        request,
+        'opportunities/internship_list.html',
+        {'internships': internships}
+    )
+
+@login_required
+@require_POST
+def apply_to_internship(request, internship_id):
+    try:
+        student = StudentProfile.objects.get(user=request.user)
+    except StudentProfile.DoesNotExist:
+        return HttpResponseForbidden("You are not a student.")
+
+    internship = get_object_or_404(Internship, id=internship_id)
+
+    InternshipApplication.objects.get_or_create(
+        student=student,
+        internship=internship
+    )
+
+    return redirect('internship_list')
 
 

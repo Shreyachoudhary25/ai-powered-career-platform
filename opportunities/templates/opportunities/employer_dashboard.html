@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employer Dashboard</title>
+</head>
+<body>
+    <h2>Employer Dashboard</h2>
+
+    {% if jobs %}
+        <table border="1" cellpadding="8">
+            <tr>
+                <th>Job Title</th>
+                <th>Total Applications</th>
+                <th>Shortlisted</th>
+                <th>Selected</th>
+                <th>Rejected</th>
+            </tr>
+
+            {% for job in jobs %}
+                <tr>
+                    <td>{{ job.title }}</td>
+                    <td>{{ job.total_applications }}</td>
+                    <td>{{ job.shortlisted }}</td>
+                    <td>{{ job.selected }}</td>
+                    <td>{{ job.rejected }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>You have not posted any jobs yet.</p>
+    {% endif %}
+</body>
+</html>

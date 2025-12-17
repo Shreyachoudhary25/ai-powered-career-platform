@@ -61,3 +61,27 @@ class Application(models.Model):
     def __str__(self):
         return f"{self.student.full_name} → {self.job.title}"
 
+class InternshipApplication(models.Model):
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE)
+    internship = models.ForeignKey(Internship, on_delete=models.CASCADE)
+
+    STATUS_CHOICES = [
+        ('applied', 'Applied'),
+        ('shortlisted', 'Shortlisted'),
+        ('rejected', 'Rejected'),
+        ('selected', 'Selected'),
+    ]
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='applied'
+    )
+
+    applied_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('student', 'internship')
+
+    def __str__(self):
+        return f"{self.student.full_name} → {self.internship.title}"
