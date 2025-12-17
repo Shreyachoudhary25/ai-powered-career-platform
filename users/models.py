@@ -30,3 +30,18 @@ class EmployerProfile(models.Model):
 
     def __str__(self):
         return self.company_name
+    
+class MentorProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    full_name = models.CharField(max_length=100)
+    expertise = models.CharField(max_length=150)
+    experience_years = models.PositiveIntegerField()
+
+    bio = models.TextField(blank=True)
+    linkedin = models.URLField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.full_name
