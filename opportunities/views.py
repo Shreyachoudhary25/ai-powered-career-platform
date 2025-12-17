@@ -7,6 +7,8 @@ from django.http import HttpResponseForbidden
 
 from users.models import EmployerProfile
 from .models import Application
+from django.db import models
+
 
 
 @login_required
@@ -92,6 +94,33 @@ def student_applications(request):
         request,
         'opportunities/student_applications.html',
         {'applications': applications}
+    )
+
+from django.db.models import Count
+
+
+@login_required
+def employer_dashboard(request):
+    try:
+        employer = EmployerProfile.objects.get(user=request.user)
+    except EmployerProfile.DoesNotExist:
+        return HttpResponseForbidden("You are not an employer.")
+
+    jobs = (
+        Job.objects
+        .filter(employer=employer)
+        .annotate(
+            total_applications=Count('application'),
+            shortlisted=Count('application', filter=models.Q(application__status='shortlisted')),
+            selected=Count('application', filter=models.Q(application__status='selected')),
+            rejected=Count('application', filter=models.Q(application__status='rejected')),
+        )
+    )
+
+    return render(
+        request,
+        'opportunities/employer_dashboard.html',
+        {'jobs': jobs}
     )
 
 
