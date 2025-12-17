@@ -10,12 +10,20 @@
         <ul>
             {% for app in applications %}
                 <li>
-                    <strong>{{ app.student.full_name }}</strong>
-                    applied for
-                    <em>{{ app.job.title }}</em>
-                    <br>
-                    Status: {{ app.status }}
-                </li>
+    <strong>{{ app.student.full_name }}</strong>
+    applied for
+    <em>{{ app.job.title }}</em>
+    <br>
+    Current status: <b>{{ app.status }}</b>
+
+    <form method="post" action="{% url 'update_application_status' app.id %}">
+        {% csrf_token %}
+        <button type="submit" name="status" value="shortlisted">Shortlist</button>
+        <button type="submit" name="status" value="selected">Select</button>
+        <button type="submit" name="status" value="rejected">Reject</button>
+    </form>
+</li>
+
             {% endfor %}
         </ul>
     {% else %}
