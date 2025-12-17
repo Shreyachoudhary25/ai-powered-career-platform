@@ -5,6 +5,10 @@ from .views import (
     job_list,
     apply_to_job,
     student_applications,
+    employer_dashboard,
+    internship_list,
+    apply_to_internship,
+
 )
 
 urlpatterns = [
@@ -14,5 +18,7 @@ urlpatterns = [
     path('jobs/', job_list, name='job_list'),
     path('jobs/<int:job_id>/apply/', apply_to_job, name='apply_to_job'),
     path('student/applications/', student_applications, name='student_applications'),
-
+    path('employer/dashboard/', employer_dashboard, name='employer_dashboard'),
+    path('internships/', internship_list, name='internship_list'),
+    path('internships/<int:internship_id>/apply/', apply_to_internship, name='apply_to_internship'),
 ]
