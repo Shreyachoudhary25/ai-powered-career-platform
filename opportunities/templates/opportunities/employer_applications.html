@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employer Applications</title>
+</head>
+<body>
+    <h2>Applications for Your Jobs</h2>
+
+    {% if applications %}
+        <ul>
+            {% for app in applications %}
+                <li>
+                    <strong>{{ app.student.full_name }}</strong>
+                    applied for
+                    <em>{{ app.job.title }}</em>
+                    <br>
+                    Status: {{ app.status }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No applications yet.</p>
+    {% endif %}
+</body>
+</html>
