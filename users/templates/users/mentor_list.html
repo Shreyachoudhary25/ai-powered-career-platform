@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mentors</title>
+</head>
+<body>
+    <h2>Available Mentors</h2>
+
+    {% for mentor in mentors %}
+        <div style="border:1px solid #ccc; padding:10px; margin:10px;">
+            <h3>{{ mentor.full_name }}</h3>
+            <p>{{ mentor.expertise }}</p>
+
+            {% if mentor.id in requested_mentors %}
+                <p><em>Request Sent</em></p>
+            {% else %}
+                <form method="post" action="{% url 'send_mentorship_request' mentor.id %}">
+                    {% csrf_token %}
+                    <button type="submit">Request Mentorship</button>
+                </form>
+            {% endif %}
+        </div>
+    {% empty %}
+        <p>No mentors available.</p>
+    {% endfor %}
+</body>
+</html>

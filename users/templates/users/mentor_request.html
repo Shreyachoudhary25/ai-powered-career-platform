@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mentorship Requests</title>
+</head>
+<body>
+    <h2>Mentorship Requests</h2>
+
+    {% for req in requests %}
+        <div style="border:1px solid #ccc; padding:10px; margin:10px;">
+            <p>
+                <strong>{{ req.student.full_name }}</strong>
+                wants mentorship
+            </p>
+
+            <p>Status: <b>{{ req.status }}</b></p>
+
+            {% if req.status == 'pending' %}
+                <form method="post" action="{% url 'update_mentorship_status' req.id %}">
+                    {% csrf_token %}
+                    <button name="status" value="accepted">Accept</button>
+                    <button name="status" value="rejected">Reject</button>
+                </form>
+            {% endif %}
+        </div>
+    {% empty %}
+        <p>No mentorship requests.</p>
+    {% endfor %}
+</body>
+</html>

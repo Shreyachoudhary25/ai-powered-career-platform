@@ -45,3 +45,28 @@ class MentorProfile(models.Model):
 
     def __str__(self):
         return self.full_name
+    
+class MentorshipRequest(models.Model):
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE)
+    mentor = models.ForeignKey(MentorProfile, on_delete=models.CASCADE)
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('rejected', 'Rejected'),
+    ]
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('student', 'mentor')
+
+    def __str__(self):
+        return f"{self.student.full_name} → {self.mentor.full_name}"
+
