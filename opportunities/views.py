@@ -8,6 +8,9 @@ from django.http import HttpResponseForbidden
 from users.models import EmployerProfile
 from .models import Application
 from django.db import models
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
+
 from .models import (
     Job,
     Internship,
@@ -154,5 +157,20 @@ def apply_to_internship(request, internship_id):
     )
 
     return redirect('internship_list')
+
+@login_required
+def home(request):
+    user = request.user
+
+    if user.groups.filter(name='Students').exists():
+        return redirect('job_list')
+
+    if user.groups.filter(name='Employers').exists():
+        return redirect('employer_dashboard')
+
+    if user.groups.filter(name='Mentors').exists():
+        return redirect('mentor_requests')
+
+    return redirect('login')
 
 
