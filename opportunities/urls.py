@@ -1,6 +1,8 @@
 from django.urls import path
 from .views import home
 from .api_views import job_list_api
+from .api_views import internship_list_api
+
 
 
 from .views import (
@@ -28,5 +30,7 @@ urlpatterns = [
     path('internships/', internship_list, name='internship_list'),
     path('internships/<int:internship_id>/apply/', apply_to_internship, name='apply_to_internship'),
     path('api/jobs/', job_list_api, name='job_list_api'),
+    path('api/internships/', internship_list_api, name='internship_list_api'),
+
 
 ]
