@@ -215,6 +215,50 @@ def update_mentorship_status_api(request, request_id):
         status=status.HTTP_200_OK
     )
 
+@api_view(['GET'])
+@permission_classes([IsStudent])
+def student_mentorship_requests_api(request):
+
+    student = StudentProfile.objects.get(user=request.user)
+
+    requests = MentorshipRequest.objects.filter(
+        student=student
+    ).select_related('mentor')
+
+    data = [
+        {
+            "id": r.id,
+            "mentor": r.mentor.full_name,
+            "status": r.status,
+            "created_at": r.created_at
+        }
+        for r in requests
+    ]
+
+    return Response(data)
+
+@api_view(['GET'])
+@permission_classes([IsMentor])
+def mentor_received_requests_api(request):
+
+    mentor = MentorProfile.objects.get(user=request.user)
+
+    requests = MentorshipRequest.objects.filter(
+        mentor=mentor
+    ).select_related('student')
+
+    data = [
+        {
+            "id": r.id,
+            "student": r.student.full_name,
+            "status": r.status,
+            "created_at": r.created_at
+        }
+        for r in requests
+    ]
+
+    return Response(data)
+
 
 
 
