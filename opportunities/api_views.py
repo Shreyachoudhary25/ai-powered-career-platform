@@ -1,39 +1,29 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, parser_classes, permission_classes, renderer_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from .models import Job
-from .serializers import JobSerializer
 from rest_framework import status
-
-from users.models import StudentProfile
-from .models import Job, Application
-from .models import Internship, InternshipApplication
-
 from rest_framework.parsers import JSONParser, FormParser
-from rest_framework.decorators import parser_classes
+from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from django.shortcuts import get_object_or_404
 
-from users.models import EmployerProfile
-from .serializers import ApplicationSerializer
+from .models import Job, Application, Internship, InternshipApplication
+from .serializers import JobSerializer, InternshipSerializer, ApplicationSerializer
+from .permissions import IsStudent, IsEmployer
 
-from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
-from rest_framework.decorators import renderer_classes
+from users.models import StudentProfile, EmployerProfile
+
+from users.models import MentorProfile, MentorshipRequest
+from users.serializers import MentorSerializer, MentorshipRequestSerializer
+from .permissions import IsMentor
 
 
-
-
-
-
+# ---------------- JOB LIST ----------------
 
 @api_view(['GET'])
 def job_list_api(request):
     jobs = Job.objects.all()
     serializer = JobSerializer(jobs, many=True)
     return Response(serializer.data)
-
-from .serializers import InternshipSerializer
-from .models import Internship
-
+# ---------------- INTERNSHIP LIST ----------------
 
 @api_view(['GET'])
 def internship_list_api(request):
@@ -41,17 +31,15 @@ def internship_list_api(request):
     serializer = InternshipSerializer(internships, many=True)
     return Response(serializer.data)
 
+
+# ---------------- APPLY TO JOB ----------------
+
 @api_view(['POST'])
+@permission_classes([IsStudent])
 @parser_classes([JSONParser, FormParser])
 def apply_to_job_api(request, job_id):
-    try:
-        student = StudentProfile.objects.get(user=request.user)
-    except StudentProfile.DoesNotExist:
-        return Response(
-            {"error": "Only students can apply"},
-            status=status.HTTP_403_FORBIDDEN
-        )
 
+    student = StudentProfile.objects.get(user=request.user)
     job = get_object_or_404(Job, id=job_id)
 
     application, created = Application.objects.get_or_create(
@@ -70,17 +58,15 @@ def apply_to_job_api(request, job_id):
         status=status.HTTP_201_CREATED
     )
 
+
+# ---------------- APPLY TO INTERNSHIP ----------------
+
 @api_view(['POST'])
+@permission_classes([IsStudent])
 @parser_classes([JSONParser, FormParser])
 def apply_to_internship_api(request, internship_id):
-    try:
-        student = StudentProfile.objects.get(user=request.user)
-    except StudentProfile.DoesNotExist:
-        return Response(
-            {"error": "Only students can apply"},
-            status=status.HTTP_403_FORBIDDEN
-        )
 
+    student = StudentProfile.objects.get(user=request.user)
     internship = get_object_or_404(Internship, id=internship_id)
 
     application, created = InternshipApplication.objects.get_or_create(
@@ -99,15 +85,14 @@ def apply_to_internship_api(request, internship_id):
         status=status.HTTP_201_CREATED
     )
 
+
+# ---------------- EMPLOYER VIEW APPLICATIONS ----------------
+
 @api_view(['GET'])
+@permission_classes([IsEmployer])
 def employer_applications_api(request):
-    try:
-        employer = EmployerProfile.objects.get(user=request.user)
-    except EmployerProfile.DoesNotExist:
-        return Response(
-            {"error": "Only employers can access this"},
-            status=status.HTTP_403_FORBIDDEN
-        )
+
+    employer = EmployerProfile.objects.get(user=request.user)
 
     applications = Application.objects.filter(
         job__employer=employer
@@ -116,18 +101,16 @@ def employer_applications_api(request):
     serializer = ApplicationSerializer(applications, many=True)
     return Response(serializer.data)
 
-@api_view(['GET','POST'])
+
+# ---------------- UPDATE APPLICATION STATUS ----------------
+
+@api_view(['POST'])
+@permission_classes([IsEmployer])
 @parser_classes([JSONParser, FormParser])
 @renderer_classes([BrowsableAPIRenderer, JSONRenderer])
 def update_application_status_api(request, application_id):
 
-    try:
-        employer = EmployerProfile.objects.get(user=request.user)
-    except EmployerProfile.DoesNotExist:
-        return Response(
-            {"error": "Only employers can update application status"},
-            status=status.HTTP_403_FORBIDDEN
-        )
+    employer = EmployerProfile.objects.get(user=request.user)
 
     application = get_object_or_404(
         Application,
@@ -156,5 +139,82 @@ def update_application_status_api(request, application_id):
         },
         status=status.HTTP_200_OK
     )
+
+@api_view(['GET'])
+def mentor_list_api(request):
+    mentors = MentorProfile.objects.all()
+    serializer = MentorSerializer(mentors, many=True)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+@permission_classes([IsStudent])
+def send_mentorship_request_api(request, mentor_id):
+
+    student = StudentProfile.objects.get(user=request.user)
+    mentor = get_object_or_404(MentorProfile, id=mentor_id)
+
+    request_obj, created = MentorshipRequest.objects.get_or_create(
+        student=student,
+        mentor=mentor
+    )
+
+    if not created:
+        return Response(
+            {"message": "Request already sent"},
+            status=status.HTTP_200_OK
+        )
+
+    return Response(
+        {"message": "Mentorship request sent"},
+        status=status.HTTP_201_CREATED
+    )
+
+@api_view(['GET'])
+@permission_classes([IsMentor])
+def mentor_requests_api(request):
+
+    mentor = MentorProfile.objects.get(user=request.user)
+
+    requests = MentorshipRequest.objects.filter(
+        mentor=mentor
+    ).select_related('student')
+
+    serializer = MentorshipRequestSerializer(requests, many=True)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+@permission_classes([IsMentor])
+def update_mentorship_status_api(request, request_id):
+
+    mentor = MentorProfile.objects.get(user=request.user)
+
+    mentorship_request = get_object_or_404(
+        MentorshipRequest,
+        id=request_id,
+        mentor=mentor
+    )
+
+    new_status = request.data.get('status')
+
+    valid_statuses = dict(MentorshipRequest.STATUS_CHOICES)
+
+    if new_status not in valid_statuses:
+        return Response(
+            {"error": "Invalid status"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    mentorship_request.status = new_status
+    mentorship_request.save()
+
+    return Response(
+        {
+            "message": "Mentorship request updated",
+            "new_status": mentorship_request.status
+        },
+        status=status.HTTP_200_OK
+    )
+
+
 
 

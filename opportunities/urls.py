@@ -23,6 +23,13 @@ from .views import (
 
 )
 
+from .api_views import (
+    mentor_list_api,
+    send_mentorship_request_api,
+    mentor_requests_api,
+    update_mentorship_status_api,
+)
+
 urlpatterns = [
     path('', home, name='home'),
 
@@ -41,6 +48,8 @@ urlpatterns = [
     path('api/internships/<int:internship_id>/apply/', apply_to_internship_api, name='apply_to_internship_api'),
     path('api/employer/applications/', employer_applications_api, name='employer_applications_api'),
     path('api/employer/applications/<int:application_id>/update/',update_application_status_api,name='update_application_status_api'),
-
-    
+    path('api/mentors/', mentor_list_api),
+    path('api/mentors/<int:mentor_id>/request/', send_mentorship_request_api),
+    path('api/mentor/requests/', mentor_requests_api),
+    path('api/mentor/requests/<int:request_id>/update/', update_mentorship_status_api),    
 ]
